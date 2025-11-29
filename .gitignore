@@ -3,3 +3,4 @@ data/raw/*
 data/.DS_Store
 .vscode/*
 data/spm/corpus.txt
+data/processed/*
