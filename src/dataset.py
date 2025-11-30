@@ -1,12 +1,18 @@
 import torch
-from torch.utils.data import DataLoader
-from sklearn.model_selection import train_test_split
+from torch.utils.data import Dataset
 
-# loading the processed data
-enc_in = torch.load("../data/processed/enc_in.pt")
-dec_in = torch.load("../data/processed/dec_in.pt")
-dec_tgt = torch.load("../data/processed/dec_tgt.pt")
+class CustomEuroParlDataset(Dataset):
+    def __init__(self, enc_in, dec_in, dec_tgt):
+        self.enc_inputs = enc_in
+        self.dec_inputs = dec_in
+        self.dec_targets = dec_tgt
 
-# split the data into train, val, and test sets
-train_enc_in, test_enc_main, train_dec_in, test_dec_in_main, train_dec_tgt, test_dec_tgt_main = train_test_split(enc_in, dec_in, dec_tgt, test_size=0.1, random_state=42)
-val_enc_in, test_enc_in, val_dec_in,  test_dec_in, val_dec_tgt, test_dec_tgt = train_test_split(test_enc_main, test_dec_in_main, test_dec_tgt_main, test_size=0.5, random_state=42)
+    def __len__(self):
+        return len(self.enc_inputs)
+    
+    def __getitem__(self, index):
+        enc_input = torch.tensor(self.enc_inputs[index], dtype=torch.int64)
+        dec_input = torch.tensor(self.dec_inputs[index], dtype=torch.int64)
+        dec_target = torch.tensor(self.dec_targets[index], dtype=torch.int64)
+        return (enc_input, dec_input, dec_target)
+    
