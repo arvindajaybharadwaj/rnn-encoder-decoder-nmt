@@ -26,4 +26,17 @@ class Encoder(nn.Module):
         return context
 
 class Decoder(nn.Module):
-    pass
+    def __init__(self, vocab_size, embed_dim, hidden_dim, padding_idx):
+        super().__init__()
+        self.embedding = nn.Embedding(vocab_size, embed_dim, padding_idx)
+        self.gru = nn.GRU(embed_dim, hidden_dim, batch_first=True)
+
+        # the decoder block has a final softmax layer
+        self.fc_out = nn.Linear(hidden_dim, vocab_size)
+    
+    def forward(self, dec_in, dec_lengths):
+        embedded = self.embedding(dec_in)
+        outputs, hidden = self.gru(embedded, hidden)
+        logits = self.fc_out(outputs)
+
+        return logits, hidden
