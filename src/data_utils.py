@@ -5,9 +5,9 @@ from src.dataset import collate_fn
 from torch.utils.data import DataLoader
 
 def load_processed_data():
-    enc_in = torch.load("../data/processed/enc_in.pt")
-    dec_in = torch.load("../data/processed/dec_in.pt")
-    dec_tgt = torch.load("../data/processed/dec_tgt.pt")
+    enc_in = torch.load("data/processed/enc_in.pt")
+    dec_in = torch.load("data/processed/dec_in.pt")
+    dec_tgt = torch.load("data/processed/dec_tgt.pt")
 
     return (enc_in, dec_in, dec_tgt)
 
