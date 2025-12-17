@@ -2,9 +2,15 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from tqdm import tqdm
+import os
 
 from src.model import Encoder, Decoder, Seq2Seq
 from src.data_utils import get_dataloaders
+
+CHECKPOINT_DIR = "checkpoints"
+os.makedirs(CHECKPOINT_DIR, exist_ok=True)
+
+RESUME_CHECKPOINT = None
 
 device = torch.device(
     "mps" if torch.backends.mps.is_available() 
@@ -17,8 +23,8 @@ SRC_VOCAB_SIZE = 16000
 TGT_VOCAB_SIZE = 16000
 EMBED_DIM = 256
 HIDDEN_DIM = 512
-BATCH_SIZE = 64
-EPOCHS = 50
+BATCH_SIZE = 32
+EPOCHS = 20
 LR = 1e-3
 PADDING_IDX = 0
 
@@ -35,8 +41,17 @@ optimizer = optim.Adam(model.parameters(), lr=LR)
 
 train_loader, val_loader, _ = get_dataloaders(BATCH_SIZE)
 
+start_epoch = 0
+
+if RESUME_CHECKPOINT is not None:
+    checkpoint = torch.load(RESUME_CHECKPOINT, map_location=device)
+    model.load_state_dict(checkpoint["model_state_dict"])
+    optimizer.load_state_dict(checkpoint["optimizer_state_dict"])
+    start_epoch = checkpoint["epoch"]
+    print(f"Resumed from epoch {start_epoch}")
+
 # training loop
-for epoch in range(EPOCHS):
+for epoch in range(start_epoch, EPOCHS):
     model.train()
     train_loss = 0
 
@@ -87,3 +102,17 @@ for epoch in range(EPOCHS):
 
     print(f"Epoch {epoch+1}/{EPOCHS} | Train Loss: {avg_train_loss:.4f}")
     print(f"Validation Loss: {avg_val_loss:.4f}")
+
+    # saving the model
+    checkpoint_path = os.path.join(CHECKPOINT_DIR, f"checkpoint_epoch_{epoch + 1}.pt")
+
+    torch.save(
+        {
+            "epoch": epoch + 1,
+            "model_state_dict": model.state_dict(),
+            "optimizer_state_dict": optimizer.state_dict()
+        },
+        checkpoint_path
+    )
+
+    print(f"Saved checkpoint: {checkpoint_path}")
